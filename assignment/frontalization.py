@@ -29,16 +29,8 @@ def find_edges(image):
     # BEGIN YOUR CODE
     assert len(image.shape) == 2, "image should be in grayscale format" #As in tutorial
 
-    # Idea: Make the image binary, i.e., only black = 0, and white = 1.
-    threshold = cv2.threshold(image, 127, 255, 0)[0] # Everything above threshold is counted as white
-    edges = np.copy(image)
-
-    #black = 0 
-    #white = 255 
+    _, edges = cv2.threshold(image, 127, 255, 0)
     
-    edges[image > threshold] = 0
-    edges[image <= threshold] = 1
-
     return edges
     
     # END YOUR CODE
@@ -52,9 +44,7 @@ def highlight_edges(edges):
         highlighted_edges (np.array): binary mask of shape [H, W]
     """
     # BEGIN YOUR CODE
-
     highlited_edges = dilation(edges)
-    #highlited_edges = edges
     
     return highlited_edges
     
@@ -70,9 +60,7 @@ def find_contours(edges):
         contours (np.array, np.array, ...): tuple of arrays of contours, where each contour is an array of points of shape [N, 1, 2]
     """
     # BEGIN YOUR CODE
-
     contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    print(contours)
     
     return contours
     
@@ -89,13 +77,14 @@ def get_max_contour(contours):
     """
     # BEGIN YOUR CODE
 
-    # max_contour =
-    
-    # return max_contour
+    areas = [cv2.contourArea(contour, True) for contour in contours]
+    max_idx = np.argmax(areas)
+    max_contour = contours[max_idx]
+
+    return max_contour
     
     # END YOUR CODE
 
-    raise NotImplementedError
 
 
 def order_corners(corners):
