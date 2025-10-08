@@ -10,11 +10,12 @@ from utils import read_image, show_image
 
 # BEGIN YOUR IMPORTS
 from skimage.morphology import dilation
-
+from rdp import rdp, rdp_rec
 # END YOUR IMPORTS
 
 
 # BEGIN YOUR FUNCTIONS
+
 
 # END YOUR FUNCTIONS
 
@@ -96,18 +97,17 @@ def order_corners(corners):
     """
     # BEGIN YOUR CODE
 
-    # top_left =
-    # top_right =
-    # bottom_right =
-    # bottom_left =
+    top_left = corners[0]
+    top_right = corners[1]
+    bottom_right = corners[2]
+    bottom_left = corners[3]
 
-    # ordered_corners = np.array([top_left, top_right, bottom_right, bottom_left])
+    ordered_corners = np.array([top_left, top_right, bottom_right, bottom_left])
     
-    # return ordered_corners
+    return ordered_corners
     
     # END YOUR CODE
-    
-    raise NotImplementedError
+
 
 
 def find_corners(contour, epsilon=0.42):
@@ -121,23 +121,26 @@ def find_corners(contour, epsilon=0.42):
     """
     # BEGIN YOUR CODE
 
-    # corners =
+    contour_rdp = rdp(contour,algo="iter", return_mask=True, epsilon=epsilon)
+    print(contour_rdp.shape)
+    print(contour_rdp)
+    corners = contour[~contour_rdp]
+    print(corners)
 
-    # # to avoid errors
-    # if len(corners) != 4:
-    #     corners += np.array([[0, 0],
-    #                          [0, 1],
-    #                          [1, 0],
-    #                          [1, 1]])
-    #     corners = corners[:4]
+    # to avoid errors
+    if len(corners) != 4:
+        corners += np.array([[0, 0],
+                             [0, 1],
+                             [1, 0],
+                             [1, 1]])
+        corners = corners[:4]
 
-    # ordered_corners = order_corners(corners)
+    ordered_corners = order_corners(corners)
 
-    # return ordered_corners
+    return ordered_corners
     
     # END YOUR CODE
 
-    raise NotImplementedError
 
 
 def rescale_image(image, scale=0.42):
