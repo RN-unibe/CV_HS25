@@ -96,11 +96,14 @@ def order_corners(corners):
         ordered_corners (np.array): an array of corner points in order [top left, top right, bottom right, bottom left]
     """
     # BEGIN YOUR CODE
+    # assert corners.shape == (4,2), "The corners array has the wrong shape!"
 
-    top_left = corners[0]
-    top_right = corners[1]
-    bottom_right = corners[2]
-    bottom_left = corners[3]
+    top_left = corners[0][0]
+    top_right = corners[1][0]
+    bottom_right = corners[2][0]
+    bottom_left = corners[3][0]
+
+    print(top_left.shape)
 
     ordered_corners = np.array([top_left, top_right, bottom_right, bottom_left])
     
@@ -120,22 +123,12 @@ def find_corners(contour, epsilon=0.42):
                                     in order [top left, top right, bottom right, bottom left]
     """
     # BEGIN YOUR CODE
-
-    contour_rdp = rdp(contour,algo="iter", return_mask=True, epsilon=epsilon)
-    print(contour_rdp.shape)
-    print(contour_rdp)
-    corners = contour[~contour_rdp]
-    print(corners)
-
-    # to avoid errors
-    if len(corners) != 4:
-        corners += np.array([[0, 0],
-                             [0, 1],
-                             [1, 0],
-                             [1, 1]])
-        corners = corners[:4]
+    #epsilon = 0.1*cv2.arcLength(contour,True)
+    #print(epsilon)
+    corners = cv2.approxPolyDP(contour, epsilon, True)
 
     ordered_corners = order_corners(corners)
+    #print(ordered_corners)
 
     return ordered_corners
     
