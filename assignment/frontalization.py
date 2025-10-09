@@ -10,7 +10,7 @@ from utils import read_image, show_image
 
 # BEGIN YOUR IMPORTS
 from skimage.morphology import dilation
-from rdp import rdp, rdp_rec
+from skimage.transform import rescale, resize
 # END YOUR IMPORTS
 
 
@@ -29,9 +29,12 @@ def find_edges(image):
     """
     # BEGIN YOUR CODE
     assert len(image.shape) == 2, "image should be in grayscale format" #As in tutorial
+    t, edges = cv2.threshold(image, 127, 255, 0)
 
-    _, edges = cv2.threshold(image, 127, 255, 0)
-    
+    print(edges)
+    if edges.dtype != np.uint8:
+        edges = edges.astype(np.uint8) # Necessary for np.bitwise_not(output) in pipeline
+    print(edges)
     return edges
     
     # END YOUR CODE
@@ -124,11 +127,13 @@ def find_corners(contour, epsilon=0.42):
     """
     # BEGIN YOUR CODE
     #epsilon = 0.1*cv2.arcLength(contour,True)
-    #print(epsilon)
+    print(epsilon)
     corners = cv2.approxPolyDP(contour, epsilon, True)
 
     ordered_corners = order_corners(corners)
     #print(ordered_corners)
+
+    assert ordered_corners.shape == (4,2), "The ordered_corners array has the wrong shape!"
 
     return ordered_corners
     
@@ -145,14 +150,16 @@ def rescale_image(image, scale=0.42):
         rescaled_image (np.array): 8-bit (with range [0, 255]) rescaled image
     """
     # BEGIN YOUR CODE
+    rescaled_image_float = rescale(image, scale, anti_aliasing=True)
+    rescaled_image = (rescaled_image_float * 255).astype(np.uint8)
+    print(rescaled_image.dtype)
 
-    # rescaled_image =
-    
-    # return rescaled_image
+    assert (rescaled_image.dtype == np.uint8) or (rescaled_image.dtype == image.dtype), "Wrong type!"
+
+    return rescaled_image
     
     # END YOUR CODE
     
-    raise NotImplementedError
 
 
 def gaussian_blur(image, sigma):
