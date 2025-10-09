@@ -10,7 +10,8 @@ from utils import read_image, show_image
 
 # BEGIN YOUR IMPORTS
 from skimage.morphology import dilation
-from skimage.transform import rescale, resize
+from skimage.transform import rescale
+from skimage.filters import gaussian
 # END YOUR IMPORTS
 
 
@@ -29,12 +30,10 @@ def find_edges(image):
     """
     # BEGIN YOUR CODE
     assert len(image.shape) == 2, "image should be in grayscale format" #As in tutorial
-    t, edges = cv2.threshold(image, 127, 255, 0)
+    assert (image.dtype == np.uint8), "image has wrong type, should be uint8!" # To assure the output is in uint8, otherwise np.bitwise_not(output) in pipeline.py won't work
+    
+    _, edges = cv2.threshold(image, 127, 255, 0)
 
-    print(edges)
-    if edges.dtype != np.uint8:
-        edges = edges.astype(np.uint8) # Necessary for np.bitwise_not(output) in pipeline
-    print(edges)
     return edges
     
     # END YOUR CODE
@@ -51,7 +50,7 @@ def highlight_edges(edges):
     highlited_edges = dilation(edges)
     
     return highlited_edges
-    
+
     # END YOUR CODE
 
 
@@ -127,11 +126,9 @@ def find_corners(contour, epsilon=0.42):
     """
     # BEGIN YOUR CODE
     #epsilon = 0.1*cv2.arcLength(contour,True)
-    print(epsilon)
+    #print(epsilon)
     corners = cv2.approxPolyDP(contour, epsilon, True)
-
     ordered_corners = order_corners(corners)
-    #print(ordered_corners)
 
     assert ordered_corners.shape == (4,2), "The ordered_corners array has the wrong shape!"
 
@@ -151,10 +148,7 @@ def rescale_image(image, scale=0.42):
     """
     # BEGIN YOUR CODE
     rescaled_image_float = rescale(image, scale, anti_aliasing=True)
-    rescaled_image = (rescaled_image_float * 255).astype(np.uint8)
-    print(rescaled_image.dtype)
-
-    assert (rescaled_image.dtype == np.uint8) or (rescaled_image.dtype == image.dtype), "Wrong type!"
+    rescaled_image = (rescaled_image_float * 255).astype(np.uint8) # To assure the output is in uint8, otherwise np.bitwise_not(output) in pipeline.py won't work
 
     return rescaled_image
     
@@ -171,14 +165,12 @@ def gaussian_blur(image, sigma):
         blurred_image (np.array): 8-bit (with range [0, 255]) blurred image
     """
     # BEGIN YOUR CODE
+    blurred_image_float = gaussian(image, sigma=sigma)
+    blurred_image = (blurred_image_float * 255).astype(np.uint8) # To assure the output is in uint8, otherwise np.bitwise_not(output) in pipeline.py won't work
 
-    # blurred_image =
-    
-    # return blurred_image
+    return blurred_image
     
     # END YOUR CODE
-
-    raise NotImplementedError
 
 
 def distance(point1, point2):
