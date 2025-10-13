@@ -100,10 +100,17 @@ def order_corners(corners):
     # BEGIN YOUR CODE
     # assert corners.shape == (4,2), "The corners array has the wrong shape!"
 
-    top_left = corners[0][0]
-    top_right = corners[0][1]
-    bottom_right = corners[0][2]
-    bottom_left = corners[0][3]
+    """    x_min = np.argmin([corner[0] for corner in corners])
+        y_min = np.argmin([corner[1] for corner in corners])
+
+        x_max = np.argmax([corner[0] for corner in corners])
+        y_max = np.argmax([corner[1] for corner in corners])
+    """
+    # Condition being, the image is oriented correctly
+    top_left = corners[0][2]
+    top_right = corners[0][3]
+    bottom_right = corners[0][0]
+    bottom_left = corners[0][1]
 
     ordered_corners = np.array([top_left, top_right, bottom_right, bottom_left])
     
@@ -183,7 +190,7 @@ def distance(point1, point2):
     # BEGIN YOUR CODE
 
     distance = np.linalg.norm(point2 - point1)
-
+    
     return distance
     
     # END YOUR CODE
@@ -198,21 +205,23 @@ def frontalize_image(image, ordered_corners):
         warped_image (np.array): warped with a perspective transform image of shape [H, H]
     """
     # 4 source points
-    top_left, top_right, bottom_right, bottom_left = ordered_corners
+    oc_f32 = ordered_corners.astype(np.float32) # Because cv2.getPerspectiveTransform needs f32
+    image_f32 = image.astype(np.float32)
+    top_left, top_right, bottom_right, bottom_left = oc_f32
 
     # BEGIN YOUR CODE
 
     # the side length of the Sudoku grid based on distances between corners
-    side = distance(top_left, bottom_left)
+    side = distance(top_left, bottom_left).astype(np.int32)
 
     # what are the 4 target (destination) points?
-    destination_points = np.float32([[0, 640], [640, 640], [640, 0], [0, 0]])
+    destination_points = np.float32([[side, 0], [side, side], [0, side], [0, 0]])
 
     # perspective transformation matrix
-    transform_matrix = cv2.getPerspectiveTransform(ordered_corners, destination_points)
+    transform_matrix = cv2.getPerspectiveTransform(oc_f32, destination_points)
 
     # image warped using the found perspective transformation matrix
-    warped_image = cv2.warpPerspective(src=image, M=transform_matrix, dsize=side)
+    warped_image = cv2.warpPerspective(src=image_f32, M=transform_matrix, dsize=(side,side))
 
     assert warped_image.shape[0] == warped_image.shape[1], "height and width of the warped image must be equal"
 
