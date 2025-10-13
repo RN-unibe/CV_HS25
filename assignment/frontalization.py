@@ -209,7 +209,7 @@ def frontalize_image(image, ordered_corners):
     side = distance(top_left, bottom_left).astype(np.int32)
 
     # what are the 4 target (destination) points?
-    destination_points = np.float32([[0, 0], [side, 0], [side, side], [0, side]])
+    destination_points = np.float32([[0, side], [0, 0], [side, 0], [side, side]])
 
     # perspective transformation matrix
     transform_matrix = cv2.getPerspectiveTransform(oc_f32, destination_points)
