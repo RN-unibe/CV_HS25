@@ -101,11 +101,9 @@ def order_corners(corners):
     # assert corners.shape == (4,2), "The corners array has the wrong shape!"
 
     top_left = corners[0][0]
-    top_right = corners[1][0]
-    bottom_right = corners[2][0]
-    bottom_left = corners[3][0]
-
-    print(top_left.shape)
+    top_right = corners[0][1]
+    bottom_right = corners[0][2]
+    bottom_left = corners[0][3]
 
     ordered_corners = np.array([top_left, top_right, bottom_right, bottom_left])
     
@@ -127,10 +125,11 @@ def find_corners(contour, epsilon=0.42):
     # BEGIN YOUR CODE
     #epsilon = 0.1*cv2.arcLength(contour,True)
     #print(epsilon)
-    corners = cv2.approxPolyDP(contour, epsilon, True)
-    ordered_corners = order_corners(corners)
+    corners = cv2.approxPolyN(curve=contour, nsides=4, epsilon_percentage=epsilon, ensure_convex=True)
+    assert corners.shape == (1,4,2), f"The corners array has the wrong shape! Expected (1,4,2), found {corners.shape}."
 
-    assert ordered_corners.shape == (4,2), "The ordered_corners array has the wrong shape!"
+    ordered_corners = order_corners(corners)
+    assert ordered_corners.shape == (4,2), f"The ordered_corners array has the wrong shape! Expected (4,2), found {ordered_corners.shape}."
 
     return ordered_corners
     
@@ -183,13 +182,11 @@ def distance(point1, point2):
     """
     # BEGIN YOUR CODE
 
-    # distance =
+    distance = np.linalg.norm(point2 - point1)
 
-    # return distance
+    return distance
     
     # END YOUR CODE
-
-    raise NotImplementedError
 
 
 def frontalize_image(image, ordered_corners):
@@ -205,25 +202,25 @@ def frontalize_image(image, ordered_corners):
 
     # BEGIN YOUR CODE
 
-    # # the side length of the Sudoku grid based on distances between corners
-    # side =
+    # the side length of the Sudoku grid based on distances between corners
+    side = distance(top_left, bottom_left)
 
-    # # what are the 4 target (destination) points?
-    # destination_points =
+    # what are the 4 target (destination) points?
+    destination_points = np.float32([[0, 640], [640, 640], [640, 0], [0, 0]])
 
-    # # perspective transformation matrix
-    # transform_matrix =
+    # perspective transformation matrix
+    transform_matrix = cv2.getPerspectiveTransform(ordered_corners, destination_points)
 
-    # # image warped using the found perspective transformation matrix
-    # warped_image =
+    # image warped using the found perspective transformation matrix
+    warped_image = cv2.warpPerspective(src=image, M=transform_matrix, dsize=side)
 
-    # assert warped_image.shape[0] == warped_image.shape[1], "height and width of the warped image must be equal"
+    assert warped_image.shape[0] == warped_image.shape[1], "height and width of the warped image must be equal"
 
-    # return warped_image
+    return warped_image
 
     # END YOUR CODE
 
-    raise NotImplementedError
+
 
 
 def show_frontalized_images(image_paths, pipeline, figsize=(16, 12)):
