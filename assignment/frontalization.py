@@ -100,11 +100,13 @@ def order_corners(corners):
     # BEGIN YOUR CODE
     # assert corners.shape == (4,2), "The corners array has the wrong shape!"
 
-    # Condition being, the image is oriented correctly
-    top_left = corners[0][2]
-    top_right = corners[0][3]
-    bottom_right = corners[0][0]
-    bottom_left = corners[0][1]
+    s = corners.sum(axis=1)
+    d = np.diff(corners, axis=1)
+
+    top_left = corners[np.argmin(s)] # top_left has smallest sum of coordinates 
+    top_right = corners[np.argmin(d)] # top_right has smalles difference between coordinates
+    bottom_right = corners[np.argmax(s)] # bottom_right has largest sum of coordinates 
+    bottom_left = corners[np.argmax(d)] # bottom_left has largest difference between coordinates
 
     ordered_corners = np.array([top_left, top_right, bottom_right, bottom_left])
     
@@ -126,8 +128,8 @@ def find_corners(contour, epsilon=0.42):
     # BEGIN YOUR CODE
     #epsilon = 0.1*cv2.arcLength(contour,True)
     #print(epsilon)
-    corners = cv2.approxPolyN(curve=contour, nsides=4, epsilon_percentage=epsilon, ensure_convex=True)
-    assert corners.shape == (1,4,2), f"The corners array has the wrong shape! Expected (1,4,2), found {corners.shape}."
+    corners = cv2.approxPolyN(curve=contour, nsides=4, epsilon_percentage=epsilon, ensure_convex=True)[0]
+    assert corners.shape == (4,2), f"The corners array has the wrong shape! Expected (4,2), found {corners.shape}."
 
     ordered_corners = order_corners(corners)
     assert ordered_corners.shape == (4,2), f"The ordered_corners array has the wrong shape! Expected (4,2), found {ordered_corners.shape}."
@@ -209,7 +211,7 @@ def frontalize_image(image, ordered_corners):
     side = distance(top_left, bottom_left).astype(np.int32)
 
     # what are the 4 target (destination) points?
-    destination_points = np.float32([[0, side], [0, 0], [side, 0], [side, side]])
+    destination_points = np.float32([[0, 0], [side, 0], [side, side], [0, side]])
 
     # perspective transformation matrix
     transform_matrix = cv2.getPerspectiveTransform(oc_f32, destination_points)
