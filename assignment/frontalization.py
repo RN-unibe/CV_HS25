@@ -32,7 +32,7 @@ def find_edges(image):
     assert len(image.shape) == 2, "image should be in grayscale format" #As in tutorial
     assert (image.dtype == np.uint8), "image has wrong type, should be uint8!" # To assure the output is in uint8, otherwise np.bitwise_not(output) in pipeline.py won't work
     
-    _, edges = cv2.threshold(image, 127, 255, 0)
+    _, edges = cv2.threshold(image, 100, 255, 0)
 
     return edges
     
