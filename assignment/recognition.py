@@ -30,13 +30,11 @@ def resize_image(image, size):
     """
     # BEGIN YOUR CODE
 
-    # resized_image =
+    resized_image = cv2.resize(src=image, dsize=size)
 
-    # return resized_image
+    return resized_image
     
     # END YOUR CODE
-
-    raise NotImplementedError
 
 
 def binarize(image, **binarization_kwargs):
@@ -51,14 +49,13 @@ def binarize(image, **binarization_kwargs):
     https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
     """
     # BEGIN YOUR CODE
+    if not binarization_kwargs:
+        binarization_kwargs = 0
+    _, binarized_image = cv2.threshold(src=image, thresh=100, maxval=255, type=binarization_kwargs)
 
-    # binarized_image =
-
-    # return binarized_image
+    return binarized_image
     
     # END YOUR CODE
-
-    raise NotImplementedError
 
 
 def crop_image(image, crop_factor):
@@ -73,7 +70,7 @@ def crop_image(image, crop_factor):
     return cropped_image
 
 
-def get_sudoku_cells(frontalized_image, crop_factor=0.42, binarization_kwargs={}):
+def get_sudoku_cells(frontalized_image, crop_factor=1, binarization_kwargs={}):
     """
     Args:
         frontalized_image (np.array): frontalized sudoku image
@@ -84,23 +81,30 @@ def get_sudoku_cells(frontalized_image, crop_factor=0.42, binarization_kwargs={}
     """
     # BEGIN YOUR CODE
 
-    # resized_image =
+    resized_image = resize_image(frontalized_image, SUDOKU_SIZE)
     
-    # binarized_image =
-    
-    # sudoku_cells = np.zeros((NUM_CELLS, NUM_CELLS, *CELL_SIZE), dtype=np.uint8)
-    # for i in range(NUM_CELLS):
-    #     for j in range(NUM_CELLS):
-    #         sudoku_cell =
-    #         sudoku_cell = crop_image(sudoku_cell, crop_factor=crop_factor)
-            
-    #         sudoku_cells[i, j] = resize_image(sudoku_cell, CELL_SIZE)
+    binarized_image = binarize(resized_image, **binarization_kwargs)
 
-    # return sudoku_cells
+
+    sudoku_cells = np.zeros((NUM_CELLS, NUM_CELLS, *CELL_SIZE), dtype=np.uint8)
+    for i in range(NUM_CELLS):
+        x = i * CELL_SIZE[0]
+
+        for j in range(NUM_CELLS):
+            y = j * CELL_SIZE[1]
+        
+            sudoku_cell = binarized_image[x:x+CELL_SIZE[0], y:y+CELL_SIZE[1]]
+
+            sudoku_cell = crop_image(sudoku_cell, crop_factor=crop_factor)
+            #print(f"binarized_image[{x}: {x+CELL_SIZE[0]}, {y}: {y+CELL_SIZE[1]}] = {sudoku_cell}")
+            #print()
+
+            sudoku_cells[i, j] = resize_image(sudoku_cell, CELL_SIZE)
+
+    return sudoku_cells
 
     # END YOUR CODE
 
-    raise NotImplementedError
 
 
 def is_empty(sudoku_cell, **kwargs):
@@ -113,13 +117,12 @@ def is_empty(sudoku_cell, **kwargs):
     """
     # BEGIN YOUR CODE
 
-    # cell_is_empty =
+    cell_is_empty = np.any(sudoku_cell<255)
     
-    # return cell_is_empty
+    return cell_is_empty
 
     # END YOUR CODE
 
-    raise NotImplementedError
 
 
 def get_digit_correlations(sudoku_cell, templates_dict):
@@ -134,18 +137,17 @@ def get_digit_correlations(sudoku_cell, templates_dict):
 
     # BEGIN YOUR CODE
     
-    # if is_empty(sudoku_cell, ...):
-    #     return correlations
+    if is_empty(sudoku_cell, ...):
+        return correlations
 
-    # for digit, templates in templates_dict.items():
-    #     # calculate the correlation score between the sudoku_cell and a digit
-    #     correlations[digit - 1] =
+    for digit, templates in templates_dict.items():
+        # calculate the correlation score between the sudoku_cell and a digit
+        correlations[digit - 1] =
 
-    # return correlations
+    return correlations
     
     # END YOUR CODE
 
-    raise NotImplementedError
 
 
 def show_correlations(sudoku_cell, correlations):
