@@ -100,12 +100,6 @@ def order_corners(corners):
     # BEGIN YOUR CODE
     # assert corners.shape == (4,2), "The corners array has the wrong shape!"
 
-    """    x_min = np.argmin([corner[0] for corner in corners])
-        y_min = np.argmin([corner[1] for corner in corners])
-
-        x_max = np.argmax([corner[0] for corner in corners])
-        y_max = np.argmax([corner[1] for corner in corners])
-    """
     # Condition being, the image is oriented correctly
     top_left = corners[0][2]
     top_right = corners[0][3]
@@ -215,7 +209,7 @@ def frontalize_image(image, ordered_corners):
     side = distance(top_left, bottom_left).astype(np.int32)
 
     # what are the 4 target (destination) points?
-    destination_points = np.float32([[side, 0], [side, side], [0, side], [0, 0]])
+    destination_points = np.float32([[0, 0], [side, 0], [side, side], [0, side]])
 
     # perspective transformation matrix
     transform_matrix = cv2.getPerspectiveTransform(oc_f32, destination_points)
