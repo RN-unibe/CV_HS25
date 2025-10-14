@@ -37,7 +37,7 @@ CELL_COORDINATES = {"image_0.jpg": {1: (6, 4),
                                     5: (4, 0),
                                     6: (4, 4),
                                     7: (4, 1),
-                                    8: (0, 5), # "crop_factor":0.7
+                                    8: (0, 5), 
                                     9: (2, 0)},
                     "image_7.jpg": {1: (0, 0),
                                     2: (4, 5),
@@ -72,7 +72,7 @@ def get_template_pipeline():
                         parameters={"gaussian_blur": {"sigma": 0.42}, 
                                     "find_corners": {"epsilon": 6.6}, 
                                     "resize_image": {"size": SUDOKU_SIZE},
-                                    "get_sudoku_cells": {"crop_factor":0.7, "binarization_kwargs": {}}})
+                                    "get_sudoku_cells": {"crop_factor":0.65, "binarization_kwargs": {}}})
     return pipeline
 
     # END YOUR CODE

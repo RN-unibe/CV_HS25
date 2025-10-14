@@ -11,7 +11,7 @@ from utils import load_templates
 
 
 # BEGIN YOUR IMPORTS
-
+from skimage.feature import match_template
 # END YOUR IMPORTS
 
 
@@ -117,7 +117,7 @@ def is_empty(sudoku_cell, **kwargs):
     """
     # BEGIN YOUR CODE
 
-    cell_is_empty = np.any(sudoku_cell<255)
+    cell_is_empty = np.any(sudoku_cell>255)
     
     return cell_is_empty
 
@@ -137,12 +137,12 @@ def get_digit_correlations(sudoku_cell, templates_dict):
 
     # BEGIN YOUR CODE
     
-    if is_empty(sudoku_cell, ...):
+    if is_empty(sudoku_cell):
         return correlations
 
     for digit, templates in templates_dict.items():
         # calculate the correlation score between the sudoku_cell and a digit
-        correlations[digit - 1] =
+        correlations[digit - 1] = match_template(image=sudoku_cell, template=templates[0])
 
     return correlations
     
@@ -172,16 +172,16 @@ def recognize_digits(sudoku_cells, templates_dict, threshold=0.5):
     sudoku_matrix = np.zeros(sudoku_cells.shape[:2], dtype=np.uint8)
     
     # BEGIN YOUR CODE
-    
-    # for i in range(sudoku_cells.shape[0]):
-    #     for j in range(sudoku_cells.shape[1]):
-    #         sudoku_matrix[i, j] =
 
-    # return sudoku_matrix
+    for i in range(sudoku_cells.shape[0]):
+        for j in range(sudoku_cells.shape[1]):
+            correlations = get_digit_correlations(sudoku_cells[j][i], templates_dict)
+            sudoku_matrix[i, j] = np.argmax(correlations)
+
+    return sudoku_matrix
 
     # END YOUR CODE
 
-    raise NotImplementedError
 
 
 def show_recognized_digits(image_paths, pipeline, figsize=(16, 12), digit_fontsize=10):
