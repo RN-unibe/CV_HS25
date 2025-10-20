@@ -142,7 +142,22 @@ def get_digit_correlations(sudoku_cell, templates_dict):
 
     for digit, templates in templates_dict.items():
         # calculate the correlation score between the sudoku_cell and a digit
-        correlations[digit - 1] = match_template(image=sudoku_cell, template=templates[0])
+        corr = 0
+
+        for template in templates:
+            c = match_template(image=sudoku_cell, template=template, pad_input=True, constant_values=0).max()
+
+            #print(f'Digit: {digit} ---> c1: {c1}')
+            #print(f'Digit: {digit} ---> c2: {c2}')
+
+
+            if np.abs(c) > corr :
+                corr = np.abs(c)
+
+        
+        #print(f'Digit: {digit} ---> corr: {corr}\n')
+
+        correlations[digit - 1] = corr
 
     return correlations
     
@@ -175,8 +190,21 @@ def recognize_digits(sudoku_cells, templates_dict, threshold=0.5):
 
     for i in range(sudoku_cells.shape[0]):
         for j in range(sudoku_cells.shape[1]):
-            correlations = get_digit_correlations(sudoku_cells[j][i], templates_dict)
-            sudoku_matrix[i, j] = np.argmax(correlations)
+            correlations = get_digit_correlations(sudoku_cells[i][j], templates_dict)
+            try :
+                correlations[correlations < threshold] = 0
+                #print(correlations)
+                digit = np.argmax(correlations)
+
+                if digit != 0 :
+                    sudoku_matrix[i, j] = digit + 1
+                
+                #print(sudoku_matrix[i, j])
+                #print()
+
+
+            except :
+                pass
 
     return sudoku_matrix
 

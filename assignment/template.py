@@ -30,7 +30,7 @@ create dict of cell coordinates like in this example
                                     }}
 """
 
-CELL_COORDINATES = {"image_0.jpg": {1: (6, 4),
+"""CELL_COORDINATES = {"image_0.jpg": {1: (6, 4),
                                     2: (2, 8),
                                     3: (1, 3),
                                     4: (6, 0),
@@ -48,6 +48,26 @@ CELL_COORDINATES = {"image_0.jpg": {1: (6, 4),
                                     7: (5, 3),
                                     8: (0, 1),
                                     9: (8, 0)},
+}"""
+
+CELL_COORDINATES = {"image_0.jpg": {6: (4, 4)},
+                    "image_1.jpg": {1: (6, 1),
+                                    2: (0, 1),
+                                    3: (1, 1),
+                                    4: (2, 0),
+                                    5: (3, 0),
+                                    7: (4, 1),
+                                    8: (1, 0), 
+                                    9: (8, 0)},
+                    "image_5.jpg": {1: (3, 2),
+                                    2: (2, 3),
+                                    3: (1, 7),
+                                    4: (0, 0),
+                                    5: (1, 1),
+                                    6: (0, 6),
+                                    7: (0, 5),
+                                    8: (4, 1),
+                                    9: (3, 3)},
 }
 
 # END YOUR CODE
@@ -69,10 +89,10 @@ def get_template_pipeline():
                                    frontalize_image,
                                    resize_image, 
                                    get_sudoku_cells],
-                        parameters={"gaussian_blur": {"sigma": 0.42}, 
-                                    "find_corners": {"epsilon": 6.6}, 
+                        parameters={"gaussian_blur": {"sigma": 1}, #0.42
+                                    "find_corners": {"epsilon": 3}, #6.6
                                     "resize_image": {"size": SUDOKU_SIZE},
-                                    "get_sudoku_cells": {"crop_factor":0.65, "binarization_kwargs": {}}})
+                                    "get_sudoku_cells": {"crop_factor":0.7, "binarization_kwargs": {}}}) #0.65
     return pipeline
 
     # END YOUR CODE
