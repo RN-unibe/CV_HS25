@@ -177,7 +177,7 @@ def show_correlations(sudoku_cell, correlations):
     axes[1].set_title("Correlations")
 
 
-def recognize_digits(sudoku_cells, templates_dict, threshold=0.3):
+def recognize_digits(sudoku_cells, templates_dict, threshold=0.45):
     """
     Args:
         sudoku_cells (np.array): np.array of the Sudoku cells of shape [N, N, S, S]

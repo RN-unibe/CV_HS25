@@ -89,7 +89,7 @@ def get_template_pipeline():
             "find_corners": {"epsilon": 0.4},       
             "resize_image": {"size": SUDOKU_SIZE},   
             "get_sudoku_cells": {
-                "crop_factor": 0.75,                 
+                "crop_factor": 0.7,                 
                 "binarization_kwargs": {}
             }
         }
@@ -112,7 +112,7 @@ def get_template_pipeline():
             "find_corners": {"epsilon": 0.4},       
             "resize_image": {"size": SUDOKU_SIZE},   
             "get_sudoku_cells": {
-                "crop_factor": 0.75,                 
+                "crop_factor": 0.61, # >0.6!!!             
                 "binarization_kwargs": {}
             }
         }
