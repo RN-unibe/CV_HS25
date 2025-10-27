@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from tqdm.notebook import tqdm
 
-from utils import read_image, show_image
+from utils import read_image, show_image, rgb2grayscale
 
 
 # BEGIN YOUR IMPORTS
@@ -30,7 +30,7 @@ def find_edges(image):
     """
     # BEGIN YOUR CODE
     if len(image.shape) != 2 : # image should be in grayscale format as in tutorial
-        img = cv2.rgb2grayscale(image)
+        img = rgb2grayscale(image)
 
     if image.dtype != np.uint8 : # To assure the output is in uint8, otherwise np.bitwise_not(output) in pipeline.py won't work
         img = image.astype(np.uint8)

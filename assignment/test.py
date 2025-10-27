@@ -59,7 +59,7 @@ def main():
                                               f"{os.path.split(os.path.split(image_path)[0])[1]}",
                                               f"frontalized_{os.path.split(image_path)[1]}")
         os.makedirs(os.path.split(frontalized_image_path)[0], exist_ok=True)
-        imsave(frontalized_image_path, frontalized_image)
+        #imsave(frontalized_image_path, frontalized_image)
         print(f"You can find the frontalized image at {frontalized_image_path}")
         print("-"*20)
 

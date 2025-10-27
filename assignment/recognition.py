@@ -122,7 +122,7 @@ def is_empty(sudoku_cell, **kwargs):
     # BEGIN YOUR CODE
 
     if 'min_ink_ratio' not in kwargs :
-        kwargs['min_ink_ratio'] = 0.05
+        kwargs['min_ink_ratio'] = 0.02
 
     cell = (sudoku_cell < 128).astype(np.uint8)
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
@@ -154,7 +154,7 @@ def get_digit_correlations(sudoku_cell, templates_dict):
         corr = 0
 
         for template in templates:
-            c = match_template(image=sudoku_cell, template=template, pad_input=True, constant_values=0).max()
+            c = match_template(image=sudoku_cell, template=template, pad_input=True, mode="wrap", constant_values=0).max()
 
             if np.abs(c) > corr :
                 corr = np.abs(c)
@@ -177,7 +177,7 @@ def show_correlations(sudoku_cell, correlations):
     axes[1].set_title("Correlations")
 
 
-def recognize_digits(sudoku_cells, templates_dict, threshold=0.4):
+def recognize_digits(sudoku_cells, templates_dict, threshold=0.3):
     """
     Args:
         sudoku_cells (np.array): np.array of the Sudoku cells of shape [N, N, S, S]
