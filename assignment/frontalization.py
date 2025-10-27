@@ -29,10 +29,16 @@ def find_edges(image):
         edges (np.array): binary mask of shape [H, W]
     """
     # BEGIN YOUR CODE
-    assert len(image.shape) == 2, "image should be in grayscale format" #As in tutorial
-    assert (image.dtype == np.uint8), "image has wrong type, should be uint8!" # To assure the output is in uint8, otherwise np.bitwise_not(output) in pipeline.py won't work
-    
-    _, edges = cv2.threshold(src=image, thresh=100, maxval=255, type=cv2.THRESH_BINARY)
+    if len(image.shape) != 2 : # image should be in grayscale format as in tutorial
+        img = cv2.rgb2grayscale(image)
+
+    if image.dtype != np.uint8 : # To assure the output is in uint8, otherwise np.bitwise_not(output) in pipeline.py won't work
+        img = image.astype(np.uint8)
+    else :
+        img = image.copy()
+
+    #_, edges = cv2.threshold(src=img, thresh=100, maxval=255, type=cv2.THRESH_BINARY)
+    edges = cv2.Canny(img, 100, 255, L2gradient=True)
 
     return edges
     
@@ -47,9 +53,10 @@ def highlight_edges(edges):
         highlighted_edges (np.array): binary mask of shape [H, W]
     """
     # BEGIN YOUR CODE
-    highlited_edges = dilation(edges)
+    highlighted_edges = dilation(edges > 0)
+    highlighted_edges = (highlighted_edges * 255).astype(np.uint8)
     
-    return highlited_edges
+    return highlighted_edges
 
     # END YOUR CODE
 
@@ -80,9 +87,12 @@ def get_max_contour(contours):
     """
     # BEGIN YOUR CODE
 
-    areas = [cv2.contourArea(contour, True) for contour in contours]
-    max_idx = np.argmax(areas)
-    max_contour = contours[max_idx]
+    areas = [abs(cv2.contourArea(c, oriented=True)) for c in contours]
+    
+    if not areas:
+        return None
+    
+    max_contour = contours[np.argmax(areas)]
 
     return max_contour
     
@@ -98,14 +108,13 @@ def order_corners(corners):
         ordered_corners (np.array): an array of corner points in order [top left, top right, bottom right, bottom left]
     """
     # BEGIN YOUR CODE
-    # assert corners.shape == (4,2), "The corners array has the wrong shape!"
 
     s = corners.sum(axis=1)
-    d = np.diff(corners, axis=1)
-
     top_left = corners[np.argmin(s)] # top_left has smallest sum of coordinates 
-    top_right = corners[np.argmin(d)] # top_right has smalles difference between coordinates
     bottom_right = corners[np.argmax(s)] # bottom_right has largest sum of coordinates 
+
+    d = np.diff(corners, axis=1)
+    top_right = corners[np.argmin(d)] # top_right has smalles difference between coordinates
     bottom_left = corners[np.argmax(d)] # bottom_left has largest difference between coordinates
 
     ordered_corners = np.array([top_left, top_right, bottom_right, bottom_left])
@@ -201,14 +210,16 @@ def frontalize_image(image, ordered_corners):
         warped_image (np.array): warped with a perspective transform image of shape [H, H]
     """
     # 4 source points
+    # BEGIN YOUR CODE
+
     oc_f32 = ordered_corners.astype(np.float32) # Because cv2.getPerspectiveTransform needs f32
     image_f32 = image.astype(np.float32)
     top_left, top_right, bottom_right, bottom_left = oc_f32
 
-    # BEGIN YOUR CODE
-
     # the side length of the Sudoku grid based on distances between corners
-    side = distance(top_left, bottom_left).astype(np.int32)
+    width = distance(top_left, top_right)
+    height = distance(top_left, bottom_left)
+    side = int((width + height) / 2)
 
     # what are the 4 target (destination) points?
     destination_points = np.float32([[0, 0], [side, 0], [side, side], [0, side]])

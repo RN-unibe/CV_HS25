@@ -50,8 +50,12 @@ def binarize(image, **binarization_kwargs):
     """
     # BEGIN YOUR CODE
     if not binarization_kwargs:
-        binarization_kwargs = 0
-    _, binarized_image = cv2.threshold(src=image, thresh=100, maxval=255, type=binarization_kwargs)
+        binarization_kwargs = {}
+    
+    if 'type' not in binarization_kwargs :
+        binarization_kwargs['type'] = 0
+
+    _, binarized_image = cv2.threshold(src=image, thresh=100, maxval=255, **binarization_kwargs)
 
     return binarized_image
     
@@ -117,9 +121,15 @@ def is_empty(sudoku_cell, **kwargs):
     """
     # BEGIN YOUR CODE
 
-    cell_is_empty = np.any(sudoku_cell>255)
-    
-    return cell_is_empty
+    if 'min_ink_ratio' not in kwargs :
+        kwargs['min_ink_ratio'] = 0.05
+
+    cell = (sudoku_cell < 128).astype(np.uint8)
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    cell = cv2.morphologyEx(cell, cv2.MORPH_OPEN, k, iterations=1)
+    ink = cell.mean()
+
+    return ink < kwargs['min_ink_ratio']
 
     # END YOUR CODE
 
@@ -141,21 +151,13 @@ def get_digit_correlations(sudoku_cell, templates_dict):
         return correlations
 
     for digit, templates in templates_dict.items():
-        # calculate the correlation score between the sudoku_cell and a digit
         corr = 0
 
         for template in templates:
             c = match_template(image=sudoku_cell, template=template, pad_input=True, constant_values=0).max()
 
-            #print(f'Digit: {digit} ---> c1: {c1}')
-            #print(f'Digit: {digit} ---> c2: {c2}')
-
-
             if np.abs(c) > corr :
                 corr = np.abs(c)
-
-        
-        #print(f'Digit: {digit} ---> corr: {corr}\n')
 
         correlations[digit - 1] = corr
 
@@ -175,7 +177,7 @@ def show_correlations(sudoku_cell, correlations):
     axes[1].set_title("Correlations")
 
 
-def recognize_digits(sudoku_cells, templates_dict, threshold=0.5):
+def recognize_digits(sudoku_cells, templates_dict, threshold=0.4):
     """
     Args:
         sudoku_cells (np.array): np.array of the Sudoku cells of shape [N, N, S, S]
@@ -191,20 +193,13 @@ def recognize_digits(sudoku_cells, templates_dict, threshold=0.5):
     for i in range(sudoku_cells.shape[0]):
         for j in range(sudoku_cells.shape[1]):
             correlations = get_digit_correlations(sudoku_cells[i][j], templates_dict)
-            try :
-                correlations[correlations < threshold] = 0
-                #print(correlations)
-                digit = np.argmax(correlations)
+            correlations[correlations < threshold] = 0
 
-                if digit != 0 :
-                    sudoku_matrix[i, j] = digit + 1
-                
-                #print(sudoku_matrix[i, j])
-                #print()
+            digit = np.argmax(correlations)
 
+            if correlations[digit] != 0 :
+                sudoku_matrix[i, j] = digit + 1
 
-            except :
-                pass
 
     return sudoku_matrix
 

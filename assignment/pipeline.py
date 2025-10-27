@@ -34,7 +34,8 @@ class Pipeline(object):
             else:
                 output = function(output, **kwargs)
 
-            if ("rescale" in function.__name__) or ("frontalize" in function.__name__) or ("resize" in function.__name__):
+            # Added ("blur" in function.__name__) case
+            if ("blur" in function.__name__) or ("rescale" in function.__name__) or ("frontalize" in function.__name__) or ("resize" in function.__name__):
                 image = output.copy()
 
             if "corner" in function.__name__:
