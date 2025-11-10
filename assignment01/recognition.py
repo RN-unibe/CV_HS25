@@ -1,0 +1,250 @@
+# Ramon Näf; 20-116-950
+
+import os
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+
+from tqdm.notebook import tqdm
+
+from utils import read_image, show_image
+from const import NUM_CELLS, CELL_SIZE, SUDOKU_SIZE
+from utils import load_templates
+
+
+# BEGIN YOUR IMPORTS
+from skimage.feature import match_template
+# END YOUR IMPORTS
+
+
+# BEGIN YOUR FUNCTIONS
+
+# END YOUR FUNCTIONS
+
+
+def resize_image(image, size):
+    """
+    Args:
+        image (np.array): input image of shape [H, W]
+        size (int, int): desired image size
+    Returns:
+        resized_image (np.array): 8-bit (with range [0, 255]) resized image
+    """
+    # BEGIN YOUR CODE
+
+    resized_image = cv2.resize(src=image, dsize=size)
+
+    return resized_image
+    
+    # END YOUR CODE
+
+
+def binarize(image, **binarization_kwargs):
+    """
+    Args:
+        image (np.array): input image
+        binarization_kwargs (dict): dict of parameter values
+    Returns:
+        binarized_image (np.array): binarized image
+
+    You can find information about different thresholding algorithms here
+    https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
+    """
+    # BEGIN YOUR CODE
+    if not binarization_kwargs:
+        binarization_kwargs = {}
+    
+    if 'type' not in binarization_kwargs :
+        binarization_kwargs['type'] = 0
+
+    _, binarized_image = cv2.threshold(src=image, thresh=100, maxval=255, **binarization_kwargs)
+
+    return binarized_image
+    
+    # END YOUR CODE
+
+
+def crop_image(image, crop_factor):
+    size = image.shape[:2]
+    
+    cropped_size = (int(size[0]*crop_factor), int(size[1]*crop_factor))
+    shift = ((size[0] - cropped_size[0]) // 2, (size[1] - cropped_size[1]) // 2)
+
+    cropped_image = image[shift[0]:shift[0]+cropped_size[0],
+                          shift[1]:shift[1]+cropped_size[1]]
+
+    return cropped_image
+
+
+def get_sudoku_cells(frontalized_image, crop_factor=1, binarization_kwargs={}):
+    """
+    Args:
+        frontalized_image (np.array): frontalized sudoku image
+        crop_factor (float): how much cell area we should preserve
+        binarization_kwargs (dict): dict of parameter values for the binarization function
+    Returns:
+        sudoku_cells (np.array): array of num_cells x num_cells sudoku cells of shape [N, N, S, S]
+    """
+    # BEGIN YOUR CODE
+
+    resized_image = resize_image(frontalized_image, SUDOKU_SIZE)
+    
+    binarized_image = binarize(resized_image, **binarization_kwargs)
+
+
+    sudoku_cells = np.zeros((NUM_CELLS, NUM_CELLS, *CELL_SIZE), dtype=np.uint8)
+    for i in range(NUM_CELLS):
+        x = i * CELL_SIZE[0]
+
+        for j in range(NUM_CELLS):
+            y = j * CELL_SIZE[1]
+        
+            sudoku_cell = binarized_image[x:x+CELL_SIZE[0], y:y+CELL_SIZE[1]]
+
+            sudoku_cell = crop_image(sudoku_cell, crop_factor=crop_factor)
+
+            sudoku_cells[i, j] = resize_image(sudoku_cell, CELL_SIZE)
+
+    return sudoku_cells
+
+    # END YOUR CODE
+
+
+
+def is_empty(sudoku_cell, **kwargs):
+    """
+    Args:
+        sudoku_cell (np.array): image (np.array) of a Sudoku cell
+        kwargs (dict): dict of parameter values for this function
+    Returns:
+        cell_is_empty (bool): True or False depends on whether the Sudoku cell is empty or not
+    """
+    # BEGIN YOUR CODE
+
+    if 'min_ink_ratio' not in kwargs :
+        kwargs['min_ink_ratio'] = 0.02
+
+    cell = (sudoku_cell < 128).astype(np.uint8)
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    cell = cv2.morphologyEx(cell, cv2.MORPH_OPEN, k, iterations=1)
+    ink = cell.mean()
+
+    return ink < kwargs['min_ink_ratio']
+
+    # END YOUR CODE
+
+
+
+def get_digit_correlations(sudoku_cell, templates_dict):
+    """
+    Args:
+        sudoku_cell (np.array): image (np.array) of a Sudoku cell
+        templates_dict (dict): dict with digits as keys and lists of template images (np.array) as values
+    Returns:
+        correlations (np.array): an array of correlation coefficients between Sudoku cell and digit templates
+    """
+    correlations = np.zeros(9)
+
+    # BEGIN YOUR CODE
+    
+    if is_empty(sudoku_cell):
+        return correlations
+
+    for digit, templates in templates_dict.items():
+        corr = 0
+
+        for template in templates:
+            c = match_template(image=sudoku_cell, template=template, pad_input=True, mode="wrap", constant_values=0).max()
+
+            if np.abs(c) > corr :
+                corr = np.abs(c)
+
+        correlations[digit - 1] = corr
+
+    return correlations
+    
+    # END YOUR CODE
+
+
+
+def show_correlations(sudoku_cell, correlations):
+    figure, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+    
+    show_image(sudoku_cell, axis=axes[0], as_gray=True)
+    
+    colors = ['blue' if value < np.max(correlations) else 'red' for value in correlations]
+    axes[1].bar(np.arange(1, 10), correlations, tick_label=np.arange(1, 10), color=colors)
+    axes[1].set_title("Correlations")
+
+
+def recognize_digits(sudoku_cells, templates_dict, threshold=0.45):
+    """
+    Args:
+        sudoku_cells (np.array): np.array of the Sudoku cells of shape [N, N, S, S]
+        templates_dict (dict): dict with digits as keys and lists of template images (np.array) as values
+        threshold (float): empty cell detection threshold
+    Returns:
+        sudoku_matrix (np.array): a matrix of shape [N, N] with recognized digits of the Sudoku grid
+    """
+    sudoku_matrix = np.zeros(sudoku_cells.shape[:2], dtype=np.uint8)
+    
+    # BEGIN YOUR CODE
+
+    for i in range(sudoku_cells.shape[0]):
+        for j in range(sudoku_cells.shape[1]):
+            correlations = get_digit_correlations(sudoku_cells[i][j], templates_dict)
+            correlations[correlations < threshold] = 0
+
+            digit = np.argmax(correlations)
+
+            if correlations[digit] != 0 :
+                sudoku_matrix[i, j] = digit + 1
+
+
+    return sudoku_matrix
+
+    # END YOUR CODE
+
+
+
+def show_recognized_digits(image_paths, pipeline, figsize=(16, 12), digit_fontsize=10):
+    nrows = len(image_paths) // 4 + 1
+    ncols = 4
+    figure, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
+    if len(axes.shape) == 1:
+        axes = axes[np.newaxis, ...]
+
+    for j in range(len(image_paths), nrows * ncols):
+        axis = axes[j // ncols][j % ncols]
+        show_image(np.ones((1, 1, 3)), axis=axis)
+    
+    for index, image_path in enumerate(tqdm(image_paths)):
+        axis = axes[index // ncols][index % ncols]
+        axis.set_title(os.path.split(image_path)[1])
+        
+        sudoku_image = read_image(image_path=image_path)
+        frontalized_image, sudoku_cells = pipeline(sudoku_image)
+
+        templates_dict = load_templates()
+        sudoku_matrix = recognize_digits(sudoku_cells, templates_dict)
+
+        show_image(frontalized_image, axis=axis, as_gray=True)
+        
+        frontalized_cell_size = (frontalized_image.shape[0]//NUM_CELLS, frontalized_image.shape[1]//NUM_CELLS)
+        for i in range(NUM_CELLS):
+            for j in range(NUM_CELLS):
+                axis.text((j + 1)*frontalized_cell_size[0] - int(0.3*frontalized_cell_size[0]),
+                          i*frontalized_cell_size[1] + int(0.3*frontalized_cell_size[1]),
+                          str(sudoku_matrix[i, j]), fontsize=digit_fontsize, c='r')
+
+
+def show_solved_sudoku(frontalized_image, sudoku_matrix, sudoku_matrix_solved, digit_fontsize=20):
+    show_image(frontalized_image, as_gray=True)
+
+    frontalized_cell_size = (frontalized_image.shape[0]//NUM_CELLS, frontalized_image.shape[1]//NUM_CELLS)
+    for i in range(NUM_CELLS):
+        for j in range(NUM_CELLS):
+            if sudoku_matrix[i, j] == 0:
+                plt.text(j*frontalized_cell_size[0] + int(0.3*frontalized_cell_size[0]),
+                         (i + 1)*frontalized_cell_size[1] - int(0.3*frontalized_cell_size[1]),
+                         str(sudoku_matrix_solved[i, j]), fontsize=digit_fontsize, c='g')
