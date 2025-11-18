@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
-from scipy.sparse.linalg import lsmr
+from scipy.sparse.linalg import lsmr, svds
 
 def get_normalization_matrix(x):
     """
@@ -21,7 +21,7 @@ def get_normalization_matrix(x):
     # --------------------------------------------------------------
 
     # Get centroid and mean-distance to centroid
-
+    T = None
     return T
 
 
@@ -38,20 +38,22 @@ def eight_points_algorithm(x1, x2, normalize=True):
 
     if normalize:
         # Construct transformation matrices to normalize the coordinates
-        # TODO
+        T1 = get_normalization_matrix(x1)
+        T2 = get_normalization_matrix(x2)
 
         # Normalize inputs
-        # TODO
-        pass
+       
 
     # Construct matrix A encoding the constraints on x1 and x2
-    # TODO
+    A = x1.T @ x2
 
     # Solve for f using SVD
-    # TODO
+    f,_ ,_ = svds(A, k=8)
 
     # Enforce that rank(F)=2
-    # TODO
+    F,_ ,_ = svds(f.T @ f, k=2)
+    assert np.linalg.matrix_rank(F) == 2
+
 
     if normalize:
         # Transform F back
@@ -69,6 +71,8 @@ def right_epipole(F):
 
     # The epipole is the null space of F (F * e = 0)
     # TODO
+    e = None
+
 
     return e
 
@@ -95,6 +99,7 @@ def ransac(x1, x2, threshold, num_steps=1000, random_seed=42):
     # TODO calculate initial inliers with with the best candidate points
     # TODO estimate F with all the inliers
     # TODO find final inliers with F
+    F, inliers = None, None
     return F, inliers  # F is estimated fundamental matrix and inliers is an indicator (boolean) numpy array
 
 
